@@ -41,7 +41,7 @@ $helm upgrade cilium cilium/cilium ./cilium --namespace kube-system --reuse-valu
 `$cilium status`
 
 Pour rappel : 
-![[Pasted image 20240528184446.png]]
+![Pasted image 20240528184446.png]
 Pour rendre accessible Hubble Relay : `$cilium hubble port-forward` (dans une autre console, idéalement tmux)
 
 Ensuite, pour vérifier l'état d'Hubble avec Hubble CLI : `$hubble status`
@@ -50,7 +50,7 @@ Pour utiliser hubble ui : `$cilium hubble ui
 Pour hubble ui, besoin d'un browser, donc potentiellement d'un proxy
 Par exemple : `$caddy reverse-proxy --from :8080 --to localhost:12000`
 
-![[Pasted image 20240623010956.png]]
+![Pasted image 20240623010956.png]
 
 ## Permettre de la visibilité L7
 Enfin, on ajoute une règle DNS pour permettre la visibilité (https://docs.cilium.io/en/stable/observability/visibility/#proxy-visibility)
