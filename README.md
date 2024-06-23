@@ -1,24 +1,34 @@
 # From scratch to DNS exfiltration detection with logs 
 ## Création du cluster
-`$kind create cluster --config=kind-config.yaml
+```
+$kind create cluster --config=kind-config.yaml
+```
 
 ## Installation de Cilium CLI
 https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/#install-the-cilium-cli
 
 ## Installation de Cilium avec Helm 
-`$helm repo add cilium https://helm.cilium.io/
-`$helm install cilium cilium/cilium --namespace kube-system`
-
+```
+$helm repo add cilium https://helm.cilium.io/
+$helm install cilium cilium/cilium --namespace kube-system`
+```
 
 Puis vérification : 
-`$helm list -n kube-system`
-`$cilium status
-Et teste de connectivité : `$cilium connectivity test
-(Ce test prend du temps)
+```
+$helm list -n kube-system`
+$cilium status
+```
+
+Et teste de connectivité (Ce test prend du temps):
+```
+$cilium connectivity test
+```
 
 Si le test échoue lors du déploiement des pods, augmenter les limites des ressources inotify : 
-- `$sudo sysctl fs.inotify.max_user_instances=512
-- `$sudo sysctl fs.inotify.max_user_watches=524288
+```
+$sudo sysctl fs.inotify.max_user_instances=512
+$sudo sysctl fs.inotify.max_user_watches=524288
+```
 
 ## Installer Hubble CLI
 https://docs.cilium.io/en/stable/gettingstarted/hubble_setup/#install-the-hubble-client
@@ -38,23 +48,39 @@ Puis on déploie Hubble Relay et Hubble UI :
 $helm upgrade cilium cilium/cilium ./cilium --namespace kube-system --reuse-values --set hubble.relay.enabled=true --set hubble.ui.enabled=true`
 ```
 ## Vérifier Hubble et Hubble UI 
-`$cilium status`
+```
+$cilium status
+```
 
 Pour rappel : 
-![Pasted image 20240528184446.png]
-Pour rendre accessible Hubble Relay : `$cilium hubble port-forward` (dans une autre console, idéalement tmux)
+![hubble architecture](Pasted image 20240528184446.png)
+Pour rendre accessible Hubble Relay (dans une autre console, idéalement tmux)
+ : 
+```
+$cilium hubble port-forward
+``` 
+Ensuite, pour vérifier l'état d'Hubble avec Hubble CLI : 
+```
+$hubble status
+```
 
-Ensuite, pour vérifier l'état d'Hubble avec Hubble CLI : `$hubble status`
-
-Pour utiliser hubble ui : `$cilium hubble ui 
+Pour utiliser hubble ui : 
+```
+$cilium hubble ui
+```
 Pour hubble ui, besoin d'un browser, donc potentiellement d'un proxy
-Par exemple : `$caddy reverse-proxy --from :8080 --to localhost:12000`
+Par exemple : 
+```
+$caddy reverse-proxy --from :8080 --to localhost:12000
+```
 
-![Pasted image 20240623010956.png]
+![hubble ui](Pasted image 20240623010956.png)
 
 ## Permettre de la visibilité L7
 Enfin, on ajoute une règle DNS pour permettre la visibilité (https://docs.cilium.io/en/stable/observability/visibility/#proxy-visibility)
-`$kubectl apply -f shallow-rule.yaml`
+```
+$kubectl apply -f shallow-rule.yaml
+```
 
 ## Générer du traffic:
 ```
@@ -64,10 +90,14 @@ $python3 dns_exfiltration_official.py
 ```
 
 ## Visualiser les logs avec Hubble CLI
-`$hubble observe --protocol dns`
+```
+$hubble observe --protocol dns
+```
 
 ## Vérifier que les logs sont exportés
-`$kubectl exec -n kube-system $CILIUM_POD -- cat /var/run/cilium/hubble/events.log | grep dns | tail 5`
+```
+$kubectl exec -n kube-system $CILIUM_POD -- cat /var/run/cilium/hubble/events.log | grep dns | tail 5
+```
 
 ## Récupérer les logs 
 ```
@@ -81,7 +111,9 @@ Librairies python requises:
 - numpy
 - tensorflow
 
-`$python3 classify-dns.py`
+```
+$python3 classify-dns.py
+```
 
 ## Generate customized traffic
 ```
