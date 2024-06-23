@@ -136,7 +136,9 @@ $kubectl exec -it ubuntu-network-tools-pod -- /bin/bash
 Then you can "dig" the queries you want 
 For automatic DNS exfiltration tools, see "generate traffic", there are 3 python scripts to do so
 
-
+Par exemple : 
+![live classification](classification-live.png)
+Remarque : ici, on voit un faux positif, mais que des vrais positifs 
 
 # From scratch to DNS exfiltration detection with dashboards
 ## Création du cluster
