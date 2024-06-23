@@ -127,31 +127,38 @@ For automatic DNS exfiltration tools, see "generate traffic", there are 3 python
 
 # From scratch to DNS exfiltration detection with dashboards
 ## Création du cluster
-`$kind create cluster --config=kind-config.yaml
+```
+$kind create cluster --config=kind-config.yaml
+```
 
 ## Installation de Cilium CLI
 https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/#install-the-cilium-cli
 
 ## Installation de Cilium avec Helm 
-`$helm repo add cilium https://helm.cilium.io/
-`$helm install cilium cilium/cilium --namespace kube-system`
+```
+$helm repo add cilium https://helm.cilium.io/
+$helm install cilium cilium/cilium --namespace kube-system
+```
 
 
 Puis vérification : 
-`$helm list -n kube-system`
-`$cilium status
-Et teste de connectivité : `$cilium connectivity test
-(Ce test prend du temps)
+```
+$helm list -n kube-system`
+$cilium status
+```
+Et teste de connectivité (ce test prend du temps): 
+```$cilium connectivity test```
+
 
 Si le test échoue lors du déploiement des pods, augmenter les limites des ressources inotify : 
-- `$sudo sysctl fs.inotify.max_user_instances=512
-- `$sudo sysctl fs.inotify.max_user_watches=524288
-
+```
+$sudo sysctl fs.inotify.max_user_instances=512
+$sudo sysctl fs.inotify.max_user_watches=524288
+```
 
 ## Installer Hubble avec helm
 Pour installer Hubble, il suffit de modifier les values de cilium dans Helm. Ensuite, pour configurer Hubble, cela se passe encore par ces values
 Pour une raison qui m'échappe, le pod Hubble-relay ne fonctionne pas ("can't find peers") dans certains cas
-Bug de Hubble relay ? [[Hubble relay can't find peers]]
 Pour le faire fonctionner : 
 ```
 $helm install cilium cilium/cilium --version 1.15.6 \
@@ -171,19 +178,22 @@ $helm upgrade cilium cilium/cilium --version 1.15.6 \
 https://docs.cilium.io/en/stable/gettingstarted/hubble_setup/#install-the-hubble-client
 
 ## Vérification de l'état d'Hubble
-`$cilium status`
+```
+$cilium status
+```
 
 Pour rappel : 
-![[Pasted image 20240528184446.png]]
-Pour rendre accessible Hubble Relay : `$cilium hubble port-forward` (dans une autre console, idéalement tmux)
+![hubble architecture](Pasted_image_20240528184446.png)
+Pour rendre accessible Hubble Relay (dans une autre console, idéalement tmux): 
+```$cilium hubble port-forward``` 
 
-Ensuite, pour vérifier l'état d'Hubble avec Hubble CLI : `$hubble status`
+Ensuite, pour vérifier l'état d'Hubble avec Hubble CLI : ```$hubble status```
 
-Pour utiliser hubble ui : `$cilium hubble ui 
+Pour utiliser hubble ui : ```$cilium hubble ui``` 
 Pour hubble ui, besoin d'un browser, donc potentiellement d'un proxy
-Par exemple : `$caddy reverse-proxy --from :8080 --to localhost:12000`
+Par exemple : ```$caddy reverse-proxy --from :8080 --to localhost:12000```
 
-![[Pasted image 20240623010956.png]]
+![hubble ui](Pasted_image_20240623010956.png)
 
 ## Installer Grafana et Prometheus
 ```bash
@@ -193,17 +203,17 @@ $helm install grafana grafana/grafana --namespace monitoring --create-namespace
 $helm install prometheus prometheus-community/prometheus --namespace monitoring
 ```
 ## Exposer grafana
-`$kubectl port-forward -n monitoring $GRAFANA_POD_NAME 3000`
+```$kubectl port-forward -n monitoring $GRAFANA_POD_NAME 3000```
 Puis reverse proxy caddy si besoin 
 
 Suivre les instructions données lors de l'installation de Grafana pour les identifiants 
 
 ## Exposer prometheus
-`$kubectl port-forward -n monitoring $PROMETHEUS_SERVER_POD_NAME 9090`
+```$kubectl port-forward -n monitoring $PROMETHEUS_SERVER_POD_NAME 9090```
 
 ## Permettre de la visibilité L7
 Enfin, on ajoute une règle DNS pour permettre la visibilité (https://docs.cilium.io/en/stable/observability/visibility/#proxy-visibility)
-`$kubectl apply -f shallow-rule.yaml`
+```$kubectl apply -f shallow-rule.yaml```
 
 ## Générer du traffic:
 ```
@@ -223,7 +233,6 @@ https://docs.cilium.io/en/stable/observability/metrics/
 - Relancer Hubble : `kubectl rollout restart deployment hubble-relay -n kube-system`
 - Simuler traffic
 - Fetch sur les metrics sur prometheus. Eventuellement relancer le port forward 
-  ![[Pasted image 20240529213714.png]]
 - Si jamais prometheus n'affiche rien, aller chercher les metrics directement depuis le endpoint, cad le port 9965 du noeud identifié
 
 ## Générer des dashboards 
