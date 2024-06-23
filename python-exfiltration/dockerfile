@@ -1,0 +1,18 @@
+# Use the official Python slim image
+FROM python:3.9-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the script and data into the container
+COPY sensitive_data.txt /app/sensitive_data.txt
+COPY diary.txt /app/diary.txt
+COPY dns_exfiltration_official.py /app/dns_exfiltration_official.py
+COPY dns_exfiltration_false.py /app/dns_exfiltration_false.py
+COPY dns_big_exfiltration_official.py /app/dns_big_exfiltration_official.py
+
+# Install the dnspython package
+RUN pip install dnspython
+
+# Keep the container running
+CMD ["sleep", "infinity"]

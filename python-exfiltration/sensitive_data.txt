@@ -1,0 +1,3 @@
+This is some sensitive data that needs to be exfiltrated over DNS.
+Here is a password: P@ssw0rd123!
+And here is a secret key: SECRETKEY123456

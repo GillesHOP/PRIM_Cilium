@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: python-script-runner
+spec:
+  containers:
+  - name: python-container
+    image: ghopin/python-dns:big
+    command: ["sleep", "infinity"]
+    resources:
+      limits:
+        memory: "256Mi"
+        cpu: "500m"

@@ -1,0 +1,26 @@
+USER-SUPPLIED VALUES:
+hubble:
+#  tls:
+#    enabled: false
+#    auto: 
+#      enabled: true
+  enabled: true
+  metrics:
+    enableOpenMetrics: true
+    enabled:
+    - drop
+    - dns:query
+    - tcp
+    - flow
+    - port-distribution
+    - icmp
+    - httpv2:expamplars=true
+  relay:
+    enabled: true
+  ui:
+    enabled: true
+operator:
+  prometheus:
+    enabled: true
+prometheus:
+  enabled: true

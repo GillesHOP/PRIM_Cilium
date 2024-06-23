@@ -1,0 +1,26 @@
+USER-SUPPLIED VALUES:
+hubble:
+  enabled: true
+  metrics:
+    enableOpenMetrics: true
+    enabled:
+    - drop
+    - 'dns:query;sourceContext;identity;destinationContext:dns|ip|pod;labelsContext=source_ip,source_pod,source_workload,destination_ip,destination_namespace'
+    - tcp
+    - flow
+    - port-distribution
+    - icmp
+    - httpv2:expamplars=true
+  relay:
+    enabled: true
+  ui:
+    enabled: true
+  export:
+    static:
+      enabled: true
+      filePath: /var/run/cilium/hubble/events.log
+operator:
+  prometheus:
+    enabled: true
+prometheus:
+  enabled: true

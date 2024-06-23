@@ -1,0 +1,93 @@
+{
+    "id": 4,
+    "gridPos": {
+      "h": 10,
+      "w": 12,
+      "x": 12,
+      "y": 0
+    },
+    "type": "timeseries",
+    "title": "TOP 20 source of DNS queries",
+    "datasource": {
+      "type": "prometheus",
+      "uid": "P1809F7CD0C75ACF3"
+    },
+    "description": "Unit = DNS queries per second\nComputed over the last minute",
+    "fieldConfig": {
+      "defaults": {
+        "custom": {
+          "drawStyle": "line",
+          "lineInterpolation": "linear",
+          "barAlignment": 0,
+          "lineWidth": 1,
+          "fillOpacity": 0,
+          "gradientMode": "none",
+          "spanNulls": false,
+          "showPoints": "auto",
+          "pointSize": 5,
+          "stacking": {
+            "mode": "none",
+            "group": "A"
+          },
+          "axisPlacement": "auto",
+          "axisLabel": "",
+          "axisColorMode": "text",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "axisCenteredZero": false,
+          "hideFrom": {
+            "tooltip": false,
+            "viz": false,
+            "legend": false
+          },
+          "thresholdsStyle": {
+            "mode": "off"
+          }
+        },
+        "color": {
+          "mode": "palette-classic"
+        },
+        "mappings": [],
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {
+              "color": "green",
+              "value": null
+            },
+            {
+              "color": "red",
+              "value": 80
+            }
+          ]
+        }
+      },
+      "overrides": []
+    },
+    "options": {
+      "tooltip": {
+        "mode": "single",
+        "sort": "none"
+      },
+      "legend": {
+        "showLegend": true,
+        "displayMode": "list",
+        "placement": "right",
+        "calcs": []
+      }
+    },
+    "targets": [
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P1809F7CD0C75ACF3"
+        },
+        "editorMode": "code",
+        "expr": "topk(20, sum(rate(hubble_dns_queries_total[1m])) by (source_ip, source_namespace))",
+        "legendFormat": "IP={{source_ip}} in ns={{source_namespace}}",
+        "range": true,
+        "refId": "A"
+      }
+    ]
+  }

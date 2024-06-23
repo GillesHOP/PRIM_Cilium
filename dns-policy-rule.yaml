@@ -1,0 +1,28 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-specific-dns-servers
+  namespace: default
+spec:
+  endpointSelector: {} # Apply to all endpoints within the namespace
+  egress:
+  - toCIDRSet:
+    - cidr: "8.8.8.8/32"
+    - cidr: "8.8.4.4/32"
+    toPorts:
+    - ports:
+      - port: "53"
+        protocol: UDP
+    - ports:
+      - port: "53"
+        protocol: TCP  
+  egressDeny:
+  - toEntities:
+    - world
+    toPorts:
+    - ports:
+      - port: "53"
+        protocol: UDP
+    - ports:
+      - port: "53"
+        protocol: TCP
