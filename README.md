@@ -125,6 +125,8 @@ For automatic DNS exfiltration tools, see "generate traffic", there are 3 python
 
 
 
+ 
+
 # From scratch to DNS exfiltration detection with dashboards
 ## Création du cluster
 ```
@@ -237,3 +239,5 @@ https://docs.cilium.io/en/stable/observability/metrics/
 
 ## Générer des dashboards 
 Des exemples de dashboards pertinents pour les détecter des exfiltration DNS haut débit sont dans le dossier grafana-dashboards
+
+![Grafana dashboard](Pasted_image_20240530065554.png)
