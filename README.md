@@ -139,6 +139,9 @@ For automatic DNS exfiltration tools, see "generate traffic", there are 3 python
 Par exemple : 
 ![live classification](classification-live.png)
 Remarque : ici, on voit un faux positif, mais que des vrais positifs 
+Le faux positif est "ecampus.paris-saclay.fr". La raison est que le modèle s'appuie grandement sur les mots d'un dictionnaire pour établir sa prédiction. Si aucun mot du dictionnaire n'est dans la query, alors il penchera pour la déclarer "true" (attaque). 
+Ainsi, on peut corriger ce problème en enrichissant le dictionnaire. En ajoutant "ecampus" au dictonnaire : 
+![live-classification-rectified](classification-live-ecampus.png)
 
 # From scratch to DNS exfiltration detection with dashboards
 ## Création du cluster
