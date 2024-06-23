@@ -77,7 +77,7 @@ $caddy reverse-proxy --from :8080 --to localhost:12000
 ![hubble ui](Pasted_image_20240623010956.png)
 
 ## Permettre de la visibilité L7
-Enfin, on ajoute une règle DNS pour permettre la visibilité (https://docs.cilium.io/en/stable/observability/visibility/#proxy-visibility)
+Enfin, on ajoute une règle DNS pour permettre la visibilité L7 (https://docs.cilium.io/en/stable/observability/visibility/#proxy-visibility)
 ```
 $kubectl apply -f shallow-rule.yaml
 ```
@@ -98,12 +98,17 @@ $hubble observe --protocol dns
 ```
 $kubectl exec -n kube-system $CILIUM_POD -- cat /var/run/cilium/hubble/events.log | grep dns | tail 5
 ```
+Avec CILIUM_POD le pod cilium qui tourne sur le même noeud que python-script-runner. Ici, il n'y a qu'un seul worker node, mais dans un cluster avec de nombreux noeuds, bien sélectionner le bon noeud pour extraire les logs exportés. 
+Sinon, utiliser un log aggregator. Dans ce projet, loki avec promtail ont été essayé pour afficher les logs dans grafana, mais sans succès : des logs de cilium sont bien remontés jusqu'à grafana, mais je n'ai pas réussi à faire remonter les network flow logs. 
 
 ## Récupérer les logs 
+Modifier CILIUM_POD dans log-processing/fetch.sh 
 ```
 $cd PRIM_Cilium/log-processing
 $./fetch.sh
 ```
+(limite actuelle : un seul cilium pod consulté)
+
 ## Détection des exfiltrations DNS
 
 Librairies python requises:
@@ -115,6 +120,14 @@ Librairies python requises:
 $python3 classify-dns.py
 ```
 
+Ce script python utilise un réseau de neuronnes (MLP) dont les informations (jupyter notebook) sont dans DNS_exfiltration_classifier.pdf.
+
+
+## Limite de la détection
+Le réseau utilisé s'appuie sur un dataset composé d'attaques faites avec encodage. Ainsi, le réseau entrainé utilisé détecte bien les exfiltrations DNS mais que lorsque le contenu des queries est encodé (92% des attaques du test set sont détectées). En particulier, c'est l'entropie de la query qui est décisif dans la détection.
+Cependant, l'attaquant pourrait réaliser des attaques avec un encodage avec une faible entropy, ce qui permettrait d'esquiver la détection. C'est ce que l'article à l'origine du dataset [link](https://link.springer.com/article/10.1007/s10207-023-00723-w) pointe du doigts. Fort heureusement, ils indiquent également une méthode pour s'adapter à ce genre d'attaques : utiliser des features aggrégées. Par manque de temps, ce cas n'a pas été abordé, mais d'après les résultats de l'article, il est théoriquement possible de detecter ces attaques plus discrètes, simplement en ajoutant de nouvelles features. 
+
+
 ## Generate customized traffic
 ```
 $kubectl apply -f ubuntu-pod/ubuntu-pod.yaml
@@ -124,8 +137,6 @@ Then you can "dig" the queries you want
 For automatic DNS exfiltration tools, see "generate traffic", there are 3 python scripts to do so
 
 
-
- 
 
 # From scratch to DNS exfiltration detection with dashboards
 ## Création du cluster
@@ -160,8 +171,9 @@ $sudo sysctl fs.inotify.max_user_watches=524288
 
 ## Installer Hubble avec helm
 Pour installer Hubble, il suffit de modifier les values de cilium dans Helm. Ensuite, pour configurer Hubble, cela se passe encore par ces values
-Pour une raison qui m'échappe, le pod Hubble-relay ne fonctionne pas ("can't find peers") dans certains cas
-Pour le faire fonctionner : 
+Installer Hubble et modifier les metrics ne me posait aucun problème, mais en essayant de recommencer depuis le début, je rencontre un problème. Pour une raison qui m'échappe, le pod Hubble-relay ne fonctionne plus ("can't find peers") dans certains cas. 
+
+Pour le faire fonctionner, je dois utiliser la configuration de helm suivante : 
 ```
 $helm install cilium cilium/cilium --version 1.15.6 \
   --namespace kube-system \
@@ -225,19 +237,23 @@ $python3 dns_exfiltration_official.py
 ```
 
 Attention : pour que les metrics fonctionnent (customisation des labels), il faut avoir une version de Cilium >1.15.0
-
-(On obtient bien les metrics, mais pas les bons labels...pb de version ? Encore ?)
+(lors de mes premières tentatives, la modification des metrics fonctionnait bien dès que la version de Cilium était correcte. Mais depuis que j'ai essayé de tout recommencer, je ne parviens plus à modifier les metrics. Avec les instructions ci-dessus, j'obtiens les metrics, mais je n'arrive pas à les modifier, si bien qu'obtenir les dashboards ci-dessous n'est plus possible. Heureusement, les ayant obtenu une fois, le proof of concept est validé)
 
 ## Modifier les metrics
 https://docs.cilium.io/en/stable/observability/metrics/
+Voici comment modifier les metrics dans hubble : (quand cela fonctionne) 
 - Modifier le fichier values.yaml qu'utilise Helm
 - Appliquer ces changements : `helm upgrade cilium cilium/cilium --namespace kube-system --values Cilium/cilium-values.yaml `
 - Relancer Hubble : `kubectl rollout restart deployment hubble-relay -n kube-system`
 - Simuler traffic
-- Fetch sur les metrics sur prometheus. Eventuellement relancer le port forward 
-- Si jamais prometheus n'affiche rien, aller chercher les metrics directement depuis le endpoint, cad le port 9965 du noeud identifié
+- Fetch les metrics sur prometheus. Eventuellement relancer le port forward (à cause du restart)
+- Si jamais prometheus n'affiche rien, aller chercher les metrics directement depuis son endpoint, cad le port 9965 du noeud identifié
 
 ## Générer des dashboards 
-Des exemples de dashboards pertinents pour les détecter des exfiltration DNS haut débit sont dans le dossier grafana-dashboards
+Des exemples de dashboards pertinents pour les détecter des exfiltration DNS haut débit sont dans le dossier grafana-dashboards.
 
+Lorsque les metrics pouvaient être modifié, j'obtenais par exemple le dashboard suivant : 
 ![Grafana dashboard](Pasted_image_20240530065554.png)
+
+Grâce à lui, on peut facilement repérer une anomalie dans le traffique DNS (quantité, destinataire, queries étranges).
+Pour parer au cas où l'exfiltration DNS se fait en faible débit, on utilise les network flow logs (voir plus haut).
