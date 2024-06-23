@@ -19,7 +19,7 @@ $helm list -n kube-system`
 $cilium status
 ```
 
-Et teste de connectivité (Ce test prend du temps):
+Et teste de connectivité (ce test prend du temps):
 ```
 $cilium connectivity test
 ```
@@ -53,7 +53,7 @@ $cilium status
 ```
 
 Pour rappel : 
-![hubble architecture](Pasted image 20240528184446.png)
+![hubble architecture](Pasted_image_20240528184446.png)
 Pour rendre accessible Hubble Relay (dans une autre console, idéalement tmux)
  : 
 ```
@@ -74,7 +74,7 @@ Par exemple :
 $caddy reverse-proxy --from :8080 --to localhost:12000
 ```
 
-![hubble ui](Pasted image 20240623010956.png)
+![hubble ui](Pasted_image_20240623010956.png)
 
 ## Permettre de la visibilité L7
 Enfin, on ajoute une règle DNS pour permettre la visibilité (https://docs.cilium.io/en/stable/observability/visibility/#proxy-visibility)
